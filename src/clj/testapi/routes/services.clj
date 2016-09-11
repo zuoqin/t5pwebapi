@@ -7,7 +7,43 @@
             [clj-jwt.core  :refer :all]
             [clj-jwt.key   :refer [private-key]]
             [clj-time.core :refer [now plus days]]
+
+            [testapi.db.core :refer [conn] ]
+            [testapi.db.core :as db]
 ))
+
+
+(defn claim [user] 
+  {:iss user
+   :exp (plus (now) (days 1))
+   :iat (now)})
+
+
+(defn checkUser [user]
+  (if (> (count (db/find-user conn  user)) 0)
+    true
+    false
+  )
+
+  ;conn
+)
+
+(defn verifyToken [token]
+  (try
+     (-> token str->jwt :claims)
+     (catch Exception e {}))
+
+
+)
+
+(defn checkToken [token]
+  (if (= (:iss 
+(verifyToken token) ) nil)
+    false
+    true
+  )
+  
+)
 
 (defapi service-routes
   {:swagger {:ui "/swagger-ui"
@@ -23,7 +59,10 @@
       :return String
       :form-params [login :- String, password :- String]
       :summary     "login/password with form-parameters"
-      (ok "the password")
+      (ok (if (checkUser login)
+            (-> (claim login) jwt to-str)
+            ""
+) )
     )
     (GET "/plus" []
       :return       Long
@@ -38,10 +77,15 @@
       (ok (- x y)))
 
     (GET "/times/:x/:y" []
-      :return      Long
+      :return     Long
+      :header-params [authorization :- String]
       :path-params [x :- Long, y :- Long]
       :summary     "x*y with path-parameters"
-      (ok (* x y)))
+      (if (= (checkToken authorization) true) 
+        (ok ( * x  y))
+        (ok 0)
+      )
+    )
 
     (POST "/divide" []
       :return      Double

@@ -56,16 +56,29 @@
 ;;      ] )
 
 (defmacro q_search_employee [field text]
-  '[:find ?p
-     :in $ 
-     :where
-     [?p (list 'field) (list text)]
-     ] )
+  `''[:find ~'?p  :where [~'?p ~field ~text] ]
+)
+
+(defn find-employee2 [name]
+  (let [employees (d/q (eval (q_search_employee :employee/english "Nacho"))  
+                       (d/db conn))
+                    ]
+   
+    (touch conn employees)
+  )
+)
 
 
 (defn find-employee [name]
-  (let [employees (d/q (q_search_employee :employee/english "Nacho") 
-                      (d/db conn))
+  (let [employees (d/q '[:find ?employee
+                         :in $ ?reference ?name
+                         :where
+                         [?employee ?reference ?name]
+]
+                      (d/db conn)
+                      :employee/english
+                      name
+                      )
                     ]
     (touch conn employees)
   )
