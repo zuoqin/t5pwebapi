@@ -13,6 +13,7 @@
     :parse-fn #(Integer/parseInt %)]])
 
 (mount/defstate ^{:on-reload :noop}
+
                 http-server
                 :start
                 (http/start

@@ -28,11 +28,13 @@
                  [org.webjars/webjars-locator-jboss-vfs "0.1.0"]
                  [luminus-immutant "0.2.2"]
                  [clj-jwt "0.1.1"]
+                 [jumblerg/ring.middleware.cors "1.0.1"]
+                 ;[ring-cors "0.1.8"]
                 ]
 
   :min-lein-version "2.0.0"
 
-  :jvm-opts ["-server" "-Dconf=.lein-env"]
+  :jvm-opts ["-Xmx1g" "-server" "-Dconf=.lein-env"]
   :source-paths ["src/clj"]
   :resource-paths ["resources"]
   :target-path "target/%s/"

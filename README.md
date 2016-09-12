@@ -16,6 +16,10 @@ To start a web server for the application, run:
 
     lein run
 
+
+java -jar -Xmx1024m target\uberjar\testapi.jar
+
+
 ## License
 
 Copyright © 2016 FIXME

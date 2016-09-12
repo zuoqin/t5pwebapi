@@ -3,7 +3,7 @@
             [compojure.api.sweet :refer :all]
             [schema.core :as s]
             
-
+            [clojure.string :as str]
             [clj-jwt.core  :refer :all]
             [clj-jwt.key   :refer [private-key]]
             [clj-time.core :refer [now plus days]]
@@ -16,7 +16,9 @@
 (defn claim [user] 
   {:iss user
    :exp (plus (now) (days 1))
-   :iat (now)})
+   :iat (now)
+  }
+)
 
 
 (defn checkUser [user]
@@ -37,12 +39,15 @@
 )
 
 (defn checkToken [token]
-  (if (= (:iss 
-(verifyToken token) ) nil)
-    false
-    true
+  (let [key (nth (str/split token #" ") 1)]
+
+    (if (= (:iss 
+      (verifyToken key) ) nil)
+      false
+      true
+    )
+
   )
-  
 )
 
 (defapi service-routes
@@ -51,19 +56,21 @@
              :data {:info {:version "1.0.0"
                            :title "Sample API"
                            :description "Sample Services"}}}}
+  (POST "/token" []
+    ;:return String
+    :form-params [grant_type :- String, username :- String, password :- String]
+    :summary     "login/password with form-parameters"
+    (ok (if (checkUser username)
+          {:access_token (-> (claim username) jwt to-str) :expires_in 99999 :token_type "bearer"}
+          ""
+       )
+    )
+  )
   
   (context "/api" []
     :tags ["thingie"]
 
-    (POST "/token" []
-      :return String
-      :form-params [login :- String, password :- String]
-      :summary     "login/password with form-parameters"
-      (ok (if (checkUser login)
-            (-> (claim login) jwt to-str)
-            ""
-) )
-    )
+
     (GET "/plus" []
       :return       Long
       :query-params [x :- Long, {y :- Long 1}]

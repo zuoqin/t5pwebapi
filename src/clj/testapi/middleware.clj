@@ -8,7 +8,10 @@
             [testapi.config :refer [env]]
             [ring.middleware.flash :refer [wrap-flash]]
             [immutant.web.middleware :refer [wrap-session]]
-            [ring.middleware.defaults :refer [site-defaults wrap-defaults]])
+            [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
+
+            [ring.middleware.cors :refer [wrap-cors]]
+  )
   (:import [javax.servlet ServletContext]))
 
 (defn wrap-context [handler]
@@ -53,11 +56,29 @@
       ;; since they're not compatible with this middleware
       ((if (:websocket? request) handler wrapped) request))))
 
+
+(def cors-headers 
+  { "Access-Control-Allow-Origin" "*"
+    "Access-Control-Allow-Headers" "authorization,content-type"
+    "Access-Control-Allow-Methods" "GET,POST,OPTIONS" })
+
+(defn all-cors
+  "Allow requests from all origins"
+  [handler]
+  (fn [request]
+    (let [response (handler request)]
+      (update-in response [:headers]
+        merge cors-headers ))))
+
+
 (defn wrap-base [handler]
   (-> ((:middleware defaults) handler)
       wrap-webjars
       wrap-flash
       (wrap-session {:cookie-attrs {:http-only true}})
+
+      (all-cors)
+
       (wrap-defaults
         (-> site-defaults
             (assoc-in [:security :anti-forgery] false)
