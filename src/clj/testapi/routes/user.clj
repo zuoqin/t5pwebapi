@@ -12,22 +12,27 @@
             [testapi.db.core :as db]
 
             [testapi.routes.services :as apicore]
+
+            [clojure.string :as str]
 ))
 
 (defn getUser [token]
-  (let [res 
+  (let [
+    usercode (:iss (-> token str->jwt :claims)  ) 
+    result (first (into [] (db/find-user usercode)   )) 
+    res 
     {
      :userid 121
-     :usercode "nacho"
-     :empid 10289
-     :datemask "yyyy/MM/dd"
-     :timemask "HH:mm:ss"
-     :language 0
+     :usercode (nth result 0)
+     :empid (nth result 1)
+     :datemask (nth result 2)
+     :timemask (nth result 3)
+     :language (nth result 4)
     }
         
     ]
-
-    res 
+    ;(println result)
+    res
   )
  
 )
@@ -47,7 +52,7 @@
       :header-params [authorization :- String]
       :summary      "x+y with query-parameters. y defaults to 1."
       (if (= (apicore/checkToken authorization) true) 
-        (ok (getUser authorization))
+        (ok (getUser (nth (str/split authorization #" ") 1)))
         (ok 0)
       )
       ;;(ok "This is the User")

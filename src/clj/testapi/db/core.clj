@@ -69,6 +69,24 @@
 )
 
 
+(defn get-message [id]
+
+  (let [entity (d/q '[:find ?entity ?b ?r ?e ?c ?s
+                      :in $ ?entity
+                      :where
+                      [?entity :message/body ?b]
+                      [?entity :message/recipients ?r]
+                      [?entity :message/english ?e]
+                      [?entity :message/chinese ?c]
+                      [?entity :message/senddate ?s]
+                      [?entity]
+                     ]
+                    (d/db conn) id)
+    ]
+    entity
+  )
+)
+
 (defn find-employee [name]
   (let [employees (d/q '[:find ?employee
                          :in $ ?reference ?name
@@ -85,15 +103,88 @@
 )
 
 
-(defn find-user [conn login]
-  (let [users (d/q '[:find ?p
+(defn find-user [login]
+  (let [users (d/q '[:find ?login ?e ?dm ?tm ?lang
                       :in $ ?login
                       :where
-                      [?p :user/code ?login]
+                      [?u :user/code ?login]
+                      [?u :user/employee ?e]
+                      [?u :user/datemask ?dm]
+                      [?u :user/timemask ?tm]
+                      [?u :user/language ?lang]
                      ]
+                     ;; [:find ?p
+                     ;;  :in $ ?login
+                     ;;  :where
+                     ;;  [?p :user/code ?login]
+                     ;; ]
                      (d/db conn) login)
     ]
-    (touch conn users)
-    ;id
+    ;(touch conn users)
+    users
+  )
+)
+
+
+(defn get-user-messages_count [conn login]
+  (let [messages_count (d/q '[:find (count ?m)
+                         :where
+                         [?m :message/senddate ?date]
+                         [?m :message/recipients ?e]
+                         [?u :user/employee ?e]
+                         [?u :user/code ?login]
+                         [((fn [dt] (.getTime dt)) ?date) ?year]
+                        ]
+                     (d/db conn) login)
+    ]
+    (touch conn messages_count)
+  )
+)
+
+(defn get-user-messages_count [login]
+  (let [messages_count (d/q '[:find (count ?m)
+                              :in $ ?login
+                              :where
+                              [?m :message/senddate ?date]
+                              [?m :message/recipients ?e]
+                              [?u :user/employee ?e]
+                              [?u :user/code ?login]
+                              [((fn [dt] (.getTime dt)) ?date) ?year]
+                             ]
+
+                     (d/db conn) login)
+    ]
+    (touch conn messages_count)
+  )
+)
+
+
+
+
+(defn get-user-messages [login]
+  (let [messages (->> 
+
+(d/q '[:find ?date ?en ?ch ?m
+                           :in $ ?login
+                           :where
+                           [?m :message/senddate ?date]
+                           [?m :message/recipients ?e]
+                           [?u :user/employee ?e]
+                           [?u :user/code ?login]
+                           [?m :message/chinese ?ch]
+                           [?m :message/english ?en]
+                           ]
+
+                         (d/db conn) login)
+                         (sort-by first)
+                         (reverse)   
+) 
+       
+
+;[{:message/senddate #inst "2014-09-08T17:29:57.273-00:00"} {:message/senddate #inst "2014-09-09T17:29:57.273-00:00"}]
+                                  
+       ]
+    ;(touch conn messages)
+    messages
   )
 )

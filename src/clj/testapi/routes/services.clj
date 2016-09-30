@@ -22,13 +22,24 @@
 
 
 (defn checkUser [user]
-  (if (> (count (db/find-user conn  user)) 0)
+  (if (> (count (db/find-user  user)) 0)
     true
     false
   )
 
   ;conn
 )
+
+(defn get-usercode-by-token [token]
+  (let [
+    usercode (:iss (-> token str->jwt :claims)  ) 
+    result (first (into [] (db/find-user usercode)   )) 
+    ]
+    (nth result 0)
+  )
+ 
+)
+
 
 (defn verifyToken [token]
   (try

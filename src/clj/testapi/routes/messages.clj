@@ -12,7 +12,54 @@
             [testapi.db.core :as db]
 
             [testapi.routes.services :as apicore]
+            [clojure.string :as str]
 ))
+
+(defn getMessagesCount [user]
+  (db/get-user-messages_count user)
+)
+
+(defn dbmessage-to-json [message]
+   (let [result {:messageid (nth message 3) 
+                 :senddate (.toString (nth message 0))
+                 :subject (nth message 1)
+                 }
+
+    ]
+
+    result
+  )
+)
+
+
+
+(defn getUserMessage [messageid]
+  (let [message (first  (into []   (db/get-message 17592186046535)      )  )
+        result {:Bcc [] :body (nth message 1) :Cc [] :senddate (.toString (nth message 5))  :subject (nth message 3) :To (nth message 2)}
+       ]
+    result
+  ) 
+
+)
+
+(defn getUserMessages [user page]
+  (take  20 (drop (* page 20 )  (map dbmessage-to-json (db/get-user-messages user)  )  ))   
+)
+
+(defn build-messages-by-page [usercode page]
+  {
+  :Data {:msgcount (:db/id  (first (getMessagesCount usercode)   )  ) }
+  :Messages (getUserMessages usercode  page)
+  :MyApplications []
+  :PendingApplications []
+  }
+
+)
+
+(defn build-message-detail [messageid]
+  (println messageid)
+  (getUserMessage messageid)
+)
 
 (defapi messages-routes
   {:swagger {:ui "/swagger-ui"
@@ -26,18 +73,13 @@
 
     (GET "/messages" []
       :header-params [authorization :- String]
+      :query-params [{messageid :- Long -1},{page :- Long 0} ]
       :summary      "x+y with query-parameters. y defaults to 1."
-      (ok {
-          :Data {:msgcount 707}
-          :Messages [
-            {:messageid 10001 :senddate "2016-02-02 15:35:12" :subject "The first subject"}
-            {:messageid 10002 :senddate "2016-02-02 16:35:12" :subject "The second subject"}
-            {:messageid 10003 :senddate "2016-02-02 17:35:12" :subject "The third subject"}
-            {:messageid 10004 :senddate "2016-02-02 18:35:12" :subject "The fourth subject"}
-            ]
-          :MyApplications []
-          :PendingApplications []
-          }
+      (ok 
+       (if (> messageid 0)
+         (build-message-detail messageid)
+         (build-messages-by-page (apicore/get-usercode-by-token (nth (str/split authorization #" ") 1)) page )
+       )
       )
     )
 
