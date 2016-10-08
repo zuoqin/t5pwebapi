@@ -32,12 +32,21 @@
 )
 
 
+(defn recipient-to-json [recipient]
+  {:empname (nth recipient 1)}
+)
 
 (defn getUserMessage [messageid]
-  (let [message (first  (into []   (db/get-message 17592186046535)      )  )
-        result {:Bcc [] :body (nth message 1) :Cc [] :senddate (.toString (nth message 5))  :subject (nth message 3) :To (nth message 2)}
+  (let [ [dbmessage to cc bcc]  (db/get-message messageid) 
+        message (first (into [] dbmessage))       
+        result {:Bcc (map recipient-to-json (into [] bcc)  )  :body (nth message 3) 
+          :Cc (map recipient-to-json (into [] cc)) :senddate (.toString (nth message 2))  
+          :subject (nth message 0) :To (map recipient-to-json (into [] to))
+    }            
+
+        
        ]
-    result
+   result
   ) 
 
 )
@@ -74,7 +83,7 @@
     (GET "/messages" []
       :header-params [authorization :- String]
       :query-params [{messageid :- Long -1},{page :- Long 0} ]
-      :summary      "x+y with query-parameters. y defaults to 1."
+      :summary      "retrieve messages or message"
       (ok 
        (if (> messageid 0)
          (build-message-detail messageid)

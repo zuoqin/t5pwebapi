@@ -71,19 +71,50 @@
 
 (defn get-message [id]
 
-  (let [entity (d/q '[:find ?entity ?b ?r ?e ?c ?s
-                      :in $ ?entity
-                      :where
-                      [?entity :message/body ?b]
-                      [?entity :message/recipients ?r]
-                      [?entity :message/english ?e]
-                      [?entity :message/chinese ?c]
-                      [?entity :message/senddate ?s]
-                      [?entity]
-                     ]
+  (let [entity (d/q '[:find ?e ?c ?s ?b
+                       :in $ ?entity
+                       :where
+                       [?entity :message/english ?e]
+                       [?entity :message/chinese ?c]
+                       [?entity :message/senddate ?s]
+                       [?entity :message/body ?b]
+                       [?entity]
+                      ]
                     (d/db conn) id)
+
+        to (d/q '[:find ?to ?e ?c
+                  :in $ ?entity
+                  :where
+                  [?entity :message/To ?to]
+                  [?to :employee/english ?e]
+                  [?to :employee/chinese ?c]
+                  [?entity]
+                 ]
+                    (d/db conn) id)
+
+        cc (d/q '[:find ?cc ?e ?c
+                  :in $ ?entity
+                  :where
+                  [?entity :message/CC ?cc]
+                  [?cc :employee/english ?e]
+                  [?cc :employee/chinese ?c]
+                  [?entity]
+                 ]
+                    (d/db conn) id)
+
+        bcc (d/q '[:find ?bcc ?e ?c
+                  :in $ ?entity
+                  :where
+                  [?entity :message/CC ?bcc]
+                  [?bcc :employee/english ?e]
+                  [?bcc :employee/chinese ?c]
+                  [?entity]
+                 ]
+                    (d/db conn) id)
+
+
     ]
-    entity
+    [entity to cc bcc]
   )
 )
 
@@ -130,7 +161,6 @@
   (let [messages_count (d/q '[:find (count ?m)
                          :where
                          [?m :message/senddate ?date]
-                         [?m :message/recipients ?e]
                          [?u :user/employee ?e]
                          [?u :user/code ?login]
                          [((fn [dt] (.getTime dt)) ?date) ?year]
@@ -146,10 +176,8 @@
                               :in $ ?login
                               :where
                               [?m :message/senddate ?date]
-                              [?m :message/recipients ?e]
                               [?u :user/employee ?e]
                               [?u :user/code ?login]
-                              [((fn [dt] (.getTime dt)) ?date) ?year]
                              ]
 
                      (d/db conn) login)
@@ -162,13 +190,12 @@
 
 
 (defn get-user-messages [login]
-  (let [messages (->> 
-
-(d/q '[:find ?date ?en ?ch ?m
+  (let [tomessages (->> 
+                    (d/q '[:find ?date ?en ?ch ?m
                            :in $ ?login
                            :where
                            [?m :message/senddate ?date]
-                           [?m :message/recipients ?e]
+                           [?m :message/To ?e]
                            [?u :user/employee ?e]
                            [?u :user/code ?login]
                            [?m :message/chinese ?ch]
@@ -178,13 +205,47 @@
                          (d/db conn) login)
                          (sort-by first)
                          (reverse)   
-) 
-       
+                    )  
+              ;; ccmessages (->> 
+              ;;       (d/q '[:find ?date ?en ?ch ?m
+              ;;              :in $ ?login
+              ;;              :where
+              ;;              [?m :message/senddate ?date]
+              ;;              [?m :message/CC ?e]
+              ;;              [?u :user/employee ?e]
+              ;;              [?u :user/code ?login]
+              ;;              [?m :message/chinese ?ch]
+              ;;              [?m :message/english ?en]
+              ;;              ]
+
+              ;;            (d/db conn) login)
+              ;;            (sort-by first)
+              ;;            (reverse)   
+              ;;       ) 
+              ;; bccmessages (->> 
+              ;;       (d/q '[:find ?date ?en ?ch ?m
+              ;;              :in $ ?login
+              ;;              :where
+              ;;              [?m :message/senddate ?date]
+              ;;              [?m :message/Bcc ?e]
+              ;;              [?u :user/employee ?e]
+              ;;              [?u :user/code ?login]
+              ;;              [?m :message/chinese ?ch]
+              ;;              [?m :message/english ?en]
+              ;;              ]
+
+              ;;            (d/db conn) login)
+              ;;            (sort-by first)
+              ;;            (reverse)  
+              ;;       )
+                         
+                    
 
 ;[{:message/senddate #inst "2014-09-08T17:29:57.273-00:00"} {:message/senddate #inst "2014-09-09T17:29:57.273-00:00"}]
                                   
        ]
     ;(touch conn messages)
-    messages
+    ;(clojure.set/union tomessages ccmessages bccmessages )
+    tomessages
   )
 )
