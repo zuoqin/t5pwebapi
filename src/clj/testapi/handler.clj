@@ -5,10 +5,10 @@
 
             [testapi.routes.home :refer [home-routes]]
             [testapi.routes.services :refer [service-routes]]
-            [testapi.routes.user :refer [user-routes]]
-            [testapi.routes.employee :refer [employee-routes]]
-            [testapi.routes.sysmenu :refer [sysmenu-routes]]
-            [testapi.routes.messages :refer [messages-routes]]
+            ;[testapi.routes.user :refer [user-routes]]
+            ;[testapi.routes.employee :refer [employee-routes]]
+            ;[testapi.routes.sysmenu :refer [sysmenu-routes]]
+            ;[testapi.routes.messages :refer [messages-routes]]
 
             
 
@@ -27,10 +27,10 @@
         (wrap-routes middleware/wrap-csrf)
         (wrap-routes middleware/wrap-formats))
     #'service-routes
-    #'user-routes
-    #'employee-routes
-    #'messages-routes
-    #'sysmenu-routes
+    ; #'user-routes
+    ; #'employee-routes
+    ; #'messages-routes
+    ; #'sysmenu-routes
     
     (route/resources "/")
     (route/not-found
