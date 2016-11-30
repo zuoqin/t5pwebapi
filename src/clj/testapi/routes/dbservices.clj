@@ -36,8 +36,7 @@
     result (first (into [] (db/find-user usercode)   )) 
     ]
     (nth result 0)
-  )
- 
+  ) 
 )
 
 

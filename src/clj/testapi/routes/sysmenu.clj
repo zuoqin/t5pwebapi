@@ -32,39 +32,42 @@
   )
 )
 
+(defn getSysMenu2 [] 
+  [
+    {
+      :menucode "WEBSITE"
+      :menuopt 21
+      :name "NewEmployees"
+      :submenu "SYSCFG"
+      :menulevel 0
+      :menuorder 23
+      :urltarget ""
+    }
+    {
+      :menucode "WEBSITE"
+      :menuopt 23
+      :name "ImageExample"
+      :submenu "SYSUTY"
+      :menulevel 0
+      :menuorder 22
+      :urltarget ""
+    }
+    {
+      :menucode "WEBSITE"
+      :menuopt 22
+      :name "ListViewExample"
+      :submenu "SYSMAS"
+      :menulevel 0
+      :menuorder 21
+      :urltarget ""
+    }
+  ]
+)
+
 (defn getSysMenu [authorization]
   (let [
         usercode (apidb/get-usercode-by-token (nth (str/split authorization #" ") 1))
         res (map dbmenu-to-json (db/get-user-menu usercode)  )    
-  ;; [
-  ;;   {
-  ;;     :menucode "WEBSITE"
-  ;;     :menuopt 21
-  ;;     :name "System Configuration"
-  ;;     :submenu "SYSCFG"
-  ;;     :menulevel 0
-  ;;     :menuorder 23
-  ;;     :urltarget ""
-  ;;   }
-  ;;   {
-  ;;     :menucode "WEBSITE"
-  ;;     :menuopt 23
-  ;;     :name "System Utility"
-  ;;     :submenu "SYSUTY"
-  ;;     :menulevel 0
-  ;;     :menuorder 22
-  ;;     :urltarget ""
-  ;;   }
-  ;;   {
-  ;;     :menucode "WEBSITE"
-  ;;     :menuopt 22
-  ;;     :name "System Maintenance"
-  ;;     :submenu "SYSMAS"
-  ;;     :menulevel 0
-  ;;     :menuorder 21
-  ;;     :urltarget ""
-  ;;   }
-  ;; ]
         ]
     ;(db/get-user-menu usercode)
     (into [] res )              ;res 

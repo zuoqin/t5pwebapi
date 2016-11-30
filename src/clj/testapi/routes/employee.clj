@@ -2,17 +2,30 @@
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
             [schema.core :as s]
-            
+            [clojure.string :as str]
 
             [clj-jwt.core  :refer :all]
             [clj-jwt.key   :refer [private-key]]
             [clj-time.core :refer [now plus days]]
 
             [testapi.routes.dbservices :as apidb]
+            [testapi.db.employee :as db]
 ))
 
-(defn getEmployee [authorization mainpath]
-  (ok {:Emphr {:empid 10289 :EmpName "Nacho" :portrait (str "/content/portrait/corina.jpg")}})
+(defn getemployeemap [employee]
+
+  {:Emphr {:empid (nth employee 0) :EmpName (nth employee 1) :portrait (str "/content/portrait/" (nth employee 3))}  }
+)
+
+(defn getEmployee [authorization]
+  (let [isauthorized (apidb/checkToken authorization)
+        username (if (= isauthorized true ) (apidb/get-usercode-by-token (nth (str/split authorization #" ") 1)) "")
+        employee (if (> (count username) 0) (getemployeemap (db/get-employee username) )  {:Emphr {:empid 10289 :EmpName "Nacho" :portrait (str "/content/portrait/corina.jpg")}})
+        ]
+
+        ;(println employee)
+        (ok employee)
+    )
 )
 
 (defn getDashBoard []

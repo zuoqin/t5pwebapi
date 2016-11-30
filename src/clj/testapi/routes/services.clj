@@ -11,8 +11,13 @@
             [testapi.routes.dbservices :as dbservices]
             [testapi.routes.messages :as messagesapi]
             [testapi.routes.employee :as employeeapi]
+            [testapi.routes.newemp :as newempapi]
             [testapi.routes.user :as userapi]
             [testapi.routes.sysmenu :as sysmenuapi]
+            [testapi.routes.payrollgroup :as payrollgroupapi]
+            [testapi.routes.position :as positionapi]
+            [testapi.routes.organization :as organizationapi]
+            [testapi.routes.calendar :as calendarapi]
 ))
 
 
@@ -84,7 +89,7 @@
       
       (if (= type 1)
         (employeeapi/getDashBoard )
-        (employeeapi/getEmployee authorization (path-for :getemployeeapi {:basePath 8888}))
+        (employeeapi/getEmployee authorization)
         )
       
     )
@@ -96,6 +101,25 @@
     )
   )
 
+  (context "/api" []
+    :tags ["new employee"]
+  
+
+    (GET "/empnew" []
+      :name :getnewempapi
+      :header-params [authorization :- String]
+      :query-params [{id :- Long 0} ]
+      :summary      "Retrieve new employees data"
+      
+      (if (= id 0)  (newempapi/getEmployees)  (newempapi/getEmployee id))       
+    )
+
+    (OPTIONS "/empnew" []
+      :query-params [{type :- Long 0} ]
+      :summary      "T5P HR cloud allows OPTIONS requests"
+      (ok "")
+    )
+  )
 
 
   (context "/api" []
@@ -129,6 +153,12 @@
       :summary      "HRMS menu for current user"
       (ok (sysmenuapi/getSysMenu authorization))
     )
+    (GET "/sysmenu2" []
+      :header-params [authorization :- String]
+      :summary      "HRMS menu for current user"
+      (ok (sysmenuapi/getSysMenu2))
+    )
+
 
     (OPTIONS "/sysmenu" []
       ;;:header-params [authorization :- String]
@@ -136,4 +166,72 @@
       (ok "")
     )    
   )
+
+
+  (context "/api" []
+    :tags ["payrollgroups"]
+
+    (GET "/payrollgroups" []
+      :header-params [authorization :- String]
+      :summary      "Payrollgroup for current user"
+      (ok (payrollgroupapi/getPayrollgroups authorization))
+    )
+
+    (OPTIONS "/payrollgroups" []
+      ;;:header-params [authorization :- String]
+      :summary      "T5P HR cloud allows OPTIONS requests"
+      (ok "")
+    )    
+  )
+
+
+  (context "/api" []
+    :tags ["position"]
+
+    (GET "/position" []
+      :header-params [authorization :- String]
+      :summary      "Position for current user"
+      (ok (positionapi/getPositions authorization))
+    )
+
+    (OPTIONS "/position" []
+      ;;:header-params [authorization :- String]
+      :summary      "T5P HR cloud allows OPTIONS requests"
+      (ok "")
+    )    
+  )
+
+
+  (context "/api" []
+    :tags ["organization"]
+
+    (GET "/organization" []
+      :header-params [authorization :- String]
+      :summary      "Organization for current user"
+      (ok (organizationapi/getOrganizations authorization))
+    )
+
+    (OPTIONS "/organization" []
+      ;;:header-params [authorization :- String]
+      :summary      "T5P HR cloud allows OPTIONS requests"
+      (ok "")
+    )    
+  )
+
+  (context "/api" []
+    :tags ["calendar"]
+
+    (GET "/calendar" []
+      :header-params [authorization :- String]
+      :summary      "Organization for current user"
+      (ok (calendarapi/getCalendar authorization))
+    )
+
+    (OPTIONS "/calendar" []
+      ;;:header-params [authorization :- String]
+      :summary      "T5P HR cloud allows OPTIONS requests"
+      (ok "")
+    )    
+  )
+
 )
